@@ -1,0 +1,7 @@
+# Ignore CIFAR-10 dataset files
+cifar-10-batches-py/
+cifar-10-python.tar.gz
+
+# Ignore trained model files (if applicable)
+trained_models/
+.DS_Store
