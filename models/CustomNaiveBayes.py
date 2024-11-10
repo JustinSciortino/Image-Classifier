@@ -45,7 +45,7 @@ class GaussianNaiveBayes():
         """
 
         #* np.unique gets all unique class labels from y so [0,1,2,3,4,5,6,7,8,9] for the cifar-10 dataset
-        self.classes = np.unique(y)
+        self.classes = list(np.unique(y))
         
         # Get number of samples in training set
         # X.shape returns a tuple (n_rows, n_columns)
@@ -154,4 +154,4 @@ class GaussianNaiveBayes():
         self.class_means = checkpoint['means'].item()
         self.class_variances = checkpoint['variances'].item()
         self.class_priors = checkpoint['priors'].item()
-        self.classes = checkpoint['classes'].item()
+        self.classes = list(checkpoint['classes'])

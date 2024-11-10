@@ -2,6 +2,8 @@ from torchvision import models
 from torchvision.models import ResNet18_Weights
 import torch
 import numpy as np
+import logging
+logging.basicConfig(filename='ddataset.log', level=logging.INFO)
 
 def extract_resnet18_features(data_loader):
     #* Load pre trained ResNet18 model
@@ -22,6 +24,7 @@ def extract_resnet18_features(data_loader):
 
             #* Pass the images through the model and extract the features
             outputs = resnet18(images)
+            logging.info(f"Output shape: {outputs.shape}")
 
             #* Flatten the output tensor to a 2D array 
             outputs = outputs.view(outputs.size(0), -1)

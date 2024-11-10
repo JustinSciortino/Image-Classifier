@@ -5,3 +5,5 @@ cifar-10-python.tar.gz
 # Ignore trained model files (if applicable)
 trained_models/
 .DS_Store
+dataset.log
+*.log
