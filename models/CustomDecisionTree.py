@@ -32,7 +32,7 @@ class CustomDecisionTree():
         if len(np.unique(y)) == 1:
             return self._create_leaf_node(y)
 
-        best_feature, best_threshold = self.find_best_split(X, y)
+        best_feature, best_threshold = self.find_best_split_(X, y)
 
         #* Split the data into left and right based on the best feature and threshold
         #* Boolean arrays for each sample ie [True, False, True, True, False, False] where each boolean represents a sample in the dataset
@@ -63,6 +63,27 @@ class CustomDecisionTree():
                     best_threshold = threshold
 
         return best_feature, best_threshold #* Int and float values
+    
+    def find_best_split_(self, X, y, num_bins=10):  # Add a parameter for the number of bins
+        best_gini = 1.0  # Worst possible gini impurity
+        best_feature = None
+        best_threshold = None
+
+        # Iterate over each feature
+        for feature in range(X.shape[1]):
+            # Create binned thresholds
+            thresholds = np.linspace(np.min(X[:, feature]), np.max(X[:, feature]), num_bins)
+
+            # Evaluate each threshold
+            for threshold in thresholds:
+                gini = self.calculate_gini(X, y, feature, threshold)
+                if gini < best_gini:
+                    best_gini = gini
+                    best_feature = feature
+                    best_threshold = threshold
+
+        return best_feature, best_threshold  # Return the best feature and threshold
+
 
     def calculate_gini(self, X, y, feature, threshold):
         """

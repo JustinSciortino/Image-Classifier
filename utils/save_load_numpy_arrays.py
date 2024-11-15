@@ -14,6 +14,18 @@ def save_data(train_features, train_labels, test_features, test_labels,
              train_features_pca=train_features_pca, 
              test_features_pca=test_features_pca)
     
+def save_data_resnet(train_features, train_labels, test_features, test_labels, 
+              filename):
+    """Save NumPy arrays to a .npz file."""
+    TRAINED_MODEL_DIR = "trained_models"
+    model_path = os.path.join(TRAINED_MODEL_DIR, "cifar10_data_resnet.npz")
+    np.savez(model_path, 
+             train_features=train_features, 
+             train_labels=train_labels,
+             test_features=test_features, 
+             test_labels=test_labels,
+                )
+    
 def load_data(filename):
     TRAINED_MODEL_DIR = "trained_models"
     model_path = os.path.join(TRAINED_MODEL_DIR, filename)
