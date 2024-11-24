@@ -3,7 +3,6 @@ from torchvision.models import ResNet18_Weights
 import torch
 import numpy as np
 import logging
-logging.basicConfig(filename='ddataset.log', level=logging.INFO)
 
 def extract_resnet18_features(data_loader):
     #* Load pre trained ResNet18 model
@@ -17,7 +16,8 @@ def extract_resnet18_features(data_loader):
     resnet18.eval()
 
     features, labels = [], []
-    with torch.no_grad(): #* Gradients not needed so disabled
+    tensors_features, tensors_labels = [], []
+    with torch.no_grad(): 
 
         #* Iterate through the data loader images and labels
         for images, labels_ in data_loader:
@@ -32,7 +32,11 @@ def extract_resnet18_features(data_loader):
             #* Convert the tensor (containing the feature vectors) to a numpy array and append to the features list
             features.append(outputs.numpy())
 
-            #* Conver the labels tensor to a numpy array and append to the labels list
+            #* Convert the labels tensor to a numpy array and append to the labels list
             labels.append(labels_.numpy())
+            
+            #* Append the tensors to be returned
+            tensors_features.append(outputs)
+            tensors_labels.append(labels_)
 
-    return np.concatenate(features), np.concatenate(labels)
+    return (np.concatenate(features), np.concatenate(labels), torch.cat(tensors_features), torch.cat(tensors_labels))

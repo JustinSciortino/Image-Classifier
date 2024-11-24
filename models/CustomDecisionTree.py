@@ -28,7 +28,7 @@ class CustomDecisionTree():
         if current_depth >= self.max_depth:
             return self._create_leaf_node(y)
 
-        #* Create a leaf node if all the samples in y have the same label > stop splitting no longer needed
+        #* Create a leaf node if all the samples in y have the same label, stop splitting no longer needed
         if len(np.unique(y)) == 1:
             return self._create_leaf_node(y)
 
@@ -46,35 +46,18 @@ class CustomDecisionTree():
         right_subtree = self.build_tree(X[right_idx], y[right_idx], current_depth + 1)
 
         return {'feature': best_feature, 'threshold': best_threshold, 'left': left_subtree, 'right': right_subtree}
-
-    def find_best_split(self, X, y): #* Determine the best threshold and feature to split on
-        best_gini = 1.0 #* Worst possible gini impurity
-        best_feature = None
-        best_threshold = None
-
-        #* Iterate over each feature and threshold to calculate the gini impurity to find the bets gini impurity and split on the that feature and threshold
-        for feature in range(X.shape[1]):
-            thresholds = np.unique(X[:, feature])
-            for threshold in thresholds:
-                gini = self.calculate_gini(X, y, feature, threshold)
-                if gini < best_gini:
-                    best_gini = gini
-                    best_feature = feature
-                    best_threshold = threshold
-
-        return best_feature, best_threshold #* Int and float values
     
-    def find_best_split_(self, X, y, num_bins=10):  # Add a parameter for the number of bins
-        best_gini = 1.0  # Worst possible gini impurity
+    def find_best_split_(self, X, y, num_bins=10):  
+        best_gini = 1.0  #* Worst possible gini impurity
         best_feature = None
         best_threshold = None
 
-        # Iterate over each feature
+        #* Iterate over each feature
         for feature in range(X.shape[1]):
-            # Create binned thresholds
+            #* Create binned thresholds
             thresholds = np.linspace(np.min(X[:, feature]), np.max(X[:, feature]), num_bins)
 
-            # Evaluate each threshold
+            #* Evaluate each threshold
             for threshold in thresholds:
                 gini = self.calculate_gini(X, y, feature, threshold)
                 if gini < best_gini:
@@ -82,7 +65,8 @@ class CustomDecisionTree():
                     best_feature = feature
                     best_threshold = threshold
 
-        return best_feature, best_threshold  # Return the best feature and threshold
+        #* Return the best feature and threshold
+        return best_feature, best_threshold  
 
 
     def calculate_gini(self, X, y, feature, threshold):
@@ -98,7 +82,7 @@ class CustomDecisionTree():
         if len(left_idx) == 0 or len(right_idx) == 0:
             return 1.0 #* Return gini impurity of 1 if either subset is empty
 
-        #* counts the number of occurences of each class label in the left and right subsets
+        #* Counts the number of occurences of each class label in the left and right subsets
         left_labels, left_counts = np.unique(y[left_idx], return_counts=True)
         right_labels, right_counts = np.unique(y[right_idx], return_counts=True)
 
@@ -132,7 +116,21 @@ class CustomDecisionTree():
                 return self.predict_single(x, node['right'])
         else:
             return node #* Node is not an internal node, return the class label/ predicted class label
+        
+    #* Helper function to get the depth of the tree
+    def get_tree_depth(self, node=None):
+        if node is None:
+            node = self.root
+        
+        if not isinstance(node, dict):
+            return 0
+        
+        left_depth = self.get_tree_depth(node['left'])
+        right_depth = self.get_tree_depth(node['right'])
+        
+        return max(left_depth, right_depth) + 1
     
+    #* Used to save the model
     def save_model(self, filename):
         TRAINED_MODEL_DIR = "trained_models"
         os.makedirs(TRAINED_MODEL_DIR, exist_ok=True)
@@ -148,6 +146,7 @@ class CustomDecisionTree():
         }
         np.savez(model_path, **data_to_save)
     
+    #* Used to load the model
     def load_model(self, filename):
         TRAINED_MODEL_DIR = "trained_models"
     
@@ -156,9 +155,8 @@ class CustomDecisionTree():
         
         model_path = os.path.join(TRAINED_MODEL_DIR, filename)
         
-        # Load the saved data
+        #* Load the saved data
         loaded_data = np.load(model_path, allow_pickle=True)
         
-        # Update the current instance with loaded parameters
         self.max_depth = loaded_data['max_depth'].item()
         self.root = loaded_data['tree'].item()

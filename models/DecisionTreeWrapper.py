@@ -2,6 +2,7 @@ from sklearn.tree import DecisionTreeClassifier
 import os
 import numpy as np
 
+#* Just a wrapper class for the DecisionTreeClassifier Scikit-learn model
 class DecisionTreeWrapper:
     def __init__(self, max_depth=None) -> None:
         self.model = DecisionTreeClassifier(criterion='gini', max_depth=max_depth)
@@ -21,7 +22,7 @@ class DecisionTreeWrapper:
         
         model_path = os.path.join(TRAINED_MODEL_DIR, filename)
         
-        # Save all necessary attributes of the sklearn DecisionTree
+        #* Save all necessary attributes of the Scikit-learn DecisionTree
         data_to_save = {
             "tree_": self.model.tree_,
             "n_features_in_": self.model.n_features_in_,
@@ -33,7 +34,8 @@ class DecisionTreeWrapper:
         }
         
         np.savez(model_path, **data_to_save)
-        
+    
+    #* Load the model from the file and set the attributes
     def load_model(self, filename):
         TRAINED_MODEL_DIR = "trained_models"
 
@@ -42,10 +44,10 @@ class DecisionTreeWrapper:
         
         model_path = os.path.join(TRAINED_MODEL_DIR, filename)
         
-        #Load the model from the file and set the attributes
+        #* Load the model from the file and set the attributes
         checkpoint = np.load(model_path, allow_pickle=True)
         
-        # Initialize new DecisionTreeClassifier and set attributes
+        #* Initialize new DecisionTreeClassifier and set attributes
         self.model = DecisionTreeClassifier(criterion='gini')
         self.model.tree_ = checkpoint['tree_'].item()
         self.model.n_features_in_ = checkpoint['n_features_in_'].item()
@@ -53,3 +55,7 @@ class DecisionTreeWrapper:
         self.model.n_outputs_ = checkpoint['n_outputs_'].item()
         self.model.classes_ = checkpoint['classes_']
         self.model.max_depth = checkpoint['max_depth'].item()
+
+    #* Get the depth of the trained decision tree
+    def get_tree_depth(self):
+        return self.model.get_depth()
