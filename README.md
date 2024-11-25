@@ -40,7 +40,7 @@ All models and configurations are already trained and are saved in ```Image-Clas
 
 ```python main.py --retrain <model name>``` or ```python main.py --retrain all``` to retrain all the models
 
-Note that for the model names listed below, once the command is entered to retrain them, the trained models will be deleted and newly trained models will be added back. The only exception is for the MLP and CNN models which the save models will not be deleted. To retrain the those models, enter the following command, ```python main.py --retrain <mlp or cnn>``` but note that if you would like to train them a second time, delete the trained models ending in ```_retrained``` yourself.  
+Note that for the model names listed below, once the command is entered to retrain them, the trained models will be deleted and newly trained models will be added back. The only exception is for the MLP and CNN models which the original saved models will not be deleted, only any other model that was trained afterwards (file name will end with _retrained). To retrain those models, enter the following command, ```python main.py --retrain mlp``` or ```python main.py --retrain cnn```.  
 
 Model names that could be retrained: custom_naive_bayes_pca, custom_naive_bayes, sklearn_naive_bayes_pca, sklearn_naive_bayes, custom_decision_tree_pca, custom_decision_tree_d50, custom_decision_tree_d15, custom_decision_tree_d10, custom_decision_tree_d5, sklearn_decision_tree_pca, sklearn_decision_tree_d50, sklearn_decision_tree_d10
 
