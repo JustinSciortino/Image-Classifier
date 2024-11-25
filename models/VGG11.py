@@ -272,13 +272,10 @@ class VGG11(nn.Module):
     #* Get memory usage of the model CPU or GPU
     def get_memory_usage(self):
         if torch.cuda.is_available():
-            print(f"GPU Memory Allocated: {torch.cuda.memory_allocated() / 1e6:.2f} MB")
-            print(f"GPU Max Memory Allocated: {torch.cuda.max_memory_allocated() / 1e6:.2f} MB")
             self.GPU_mememory_allocated = torch.cuda.memory_allocated() / 1e6
             self.GPU_max_memory_allocated = torch.cuda.max_memory_allocated() / 1e6
         else:
             process = psutil.Process(os.getpid())
-            print(f"CPU Memory Usage: {process.memory_info().rss / 1e6:.2f} MB")
             self.CPU_memory_usage = process.memory_info().rss / 1e6
 
     #* Get memory usage of the model CPU or GPU and training time

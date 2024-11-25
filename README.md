@@ -36,14 +36,44 @@ After activating the virtual environment, to perform data pre-processing again, 
 
 ## **How to Train or Retrain the Models**
 
-All models and configurations are already trained are in saved in ```Image-Classifier/trained_models```. However to retrain some or all of the models, enter the following command:
+All models and configurations are already trained and are saved in ```Image-Classifier/trained_models```. However to retrain some or all of the models, enter the following command:
 
 ```python main.py --retrain <model name>``` or ```python main.py --retrain all``` to retrain all the models
 
-Model names: custom_naive_bayes_pca, custom_naive_bayes, sklearn_naive_bayes_pca, sklearn_naive_bayes, custom_decision_tree_pca, custom_decision_tree_d50, custom_decision_tree_d15, custom_decision_tree_d10, custom_decision_tree_d5, sklearn_decision_tree_pca, sklearn_decision_tree_d50, sklearn_decision_tree_d10
+Note that for the model names listed below, once the command is entered to retrain them, the trained models will be deleted and newly trained models will be added back. The only exception is for the MLP and CNN models which the save models will not be deleted. To retrain the those models, enter the following command, ```python main.py --retrain <mlp or cnn>``` but note that if you would like to train them a second time, delete the trained models ending in ```_retrained``` yourself.  
+
+Model names that could be retrained: custom_naive_bayes_pca, custom_naive_bayes, sklearn_naive_bayes_pca, sklearn_naive_bayes, custom_decision_tree_pca, custom_decision_tree_d50, custom_decision_tree_d15, custom_decision_tree_d10, custom_decision_tree_d5, sklearn_decision_tree_pca, sklearn_decision_tree_d50, sklearn_decision_tree_d10
 
 ## **How to Evaluate the Models**
 
 To evaluate the models, use the following command: ```python main.py```
 
 ## **Folder Structure and File Descriptions**
+- ```Image-Classifier/data```
+    - ```dataset.py```: Contains all logic to load the CIFAR-10 dataset 
+    - Directory where the ```cifar-10-batches-py``` and the ```cifar-10-python.tar.gz``` will be imported into
+- ```Image-Classifier/models```
+    - ```Image-Classifier/models/notebooks```
+        - ```CNN.ipynb```: The jupyter notebook that was used to train the CNN model configurations on Google Colab using a GPU
+        - ```MLP.ipynb```: The jupyter notebook that was used to train the MLP model configurations on Google Colab using a GPU
+    - ```MLP.py```: MLP class and model, contains save and load methods to save and load then model, contains methods to train, evaluate and get metrics
+    - ```VGG11.py```: CNN class and model, contains save and load methods to save and load then model, contains methods to train, calculate the flattened size, forward pass, evaluate and get metrics
+    - ```CustomDecisionTree.py```: Decision Tree class and model, contains methods to build the tree, fit the tree, find the best split, calculate the gini impurity, predictions, and save/load the model
+    - ```DecisionTreeWrapper.py```: Simply a wrapper class of the Scikit-learn's implementation of the Decision Tree Classifier. The wrapper class has added methods to save and load the model
+    - ```CustomNaiveBayes.py```: Naive Bayes class and model, contains methods to fit the model, calculate the likelihood, make predictions (which calculates the posterior probabilities too), and save/load the model
+    - ```GuassianNBWrapper.py```: Simply a wrapper class of the Scikit-learn's implementation of the Gaussian Naive Bayes model. The wrapper class has added methods to save and load the model
+- ```Image-Classifier/trained_models```
+    - Contains all the trained models for the four models and their configurations
+    - Contains ```cifar_data.npz``` and ```cifar10_tensors.pt``` which are files of saved processed numpy and tensors. It avoids having to pre-process the data every single time the program is ran, and we can simply load the data from those files. 
+    - Note that the CNN models in the Google Drive should be downloaded and put into this directory
+- ```Image-Classifier/utils```
+    - ```feature_extraction.py```: Contains a function that when called extracts all the features from the data loader using ResNet-18. The function also removes the last layer of ResNet-18
+    - ```help_msg.py```: Contains a function that when called prints a help message to the user. Used when the user does not enter the right command to either pre-process or retrain the models again (list of instructions). 
+    - ```reduce_feature_vector_size.py```: Contains a function to apply PCA, reduce the feature vector from 512 to 50 and return the vector as a numpy array
+    - ```save_load_helpers.py```: Contains two save and two load functions used to save/load the pre-processed numpy arrays (cifar_data.npz) and tensors (cifar10_tensors.pt) from files. 
+- ```Image-Classifier/main.py```
+    - Contains all related functionality to retrain, pre-process and evaluate all the saved models. Also contains a function to return the evaluation metrics for the Naive Bayes and Decision Tree models. 
+- ```Image-Classifier/Pipfile```
+    - Contains project dependencies
+- ```Image-Classifier/COMP 472 Project Report```
+    - Contains the project report (PDF)

@@ -178,18 +178,15 @@ class MLP:
         self.GPU_max_memory_allocated = checkpoint.get("GPU_max_memory_allocated", 0)
         self.CPU_memory_usage = checkpoint.get("CPU_memory_usage", 0)
         self.model.eval()
-        print(f"Model loaded from {filepath}, Training Time: {self.training_time:.2f} seconds")
+        print(f"Model loaded from {filepath}")
 
     #* Get the memory usage of the model for both CPU and GPU
     def get_memory_usage(self):
         if torch.cuda.is_available():
-            print(f"GPU Memory Allocated: {torch.cuda.memory_allocated() / 1e6:.2f} MB")
-            print(f"GPU Max Memory Allocated: {torch.cuda.max_memory_allocated() / 1e6:.2f} MB")
             self.GPU_mememory_allocated = torch.cuda.memory_allocated() / 1e6
             self.GPU_max_memory_allocated = torch.cuda.max_memory_allocated() / 1e6
         else:
             process = psutil.Process(os.getpid())
-            print(f"CPU Memory Usage: {process.memory_info().rss / 1e6:.2f} MB")
             self.CPU_memory_usage = process.memory_info().rss / 1e6
 
     #* Get the memory usage of the model for both CPU and GPU and the training time

@@ -7,8 +7,6 @@ import os
 import torch
 import argparse
 import numpy as np
-import logging
-logging.basicConfig(filename='ddataset.log', level=logging.INFO)
 
 TRAINED_MODEL_DIR = "trained_models"
 if not os.path.exists(TRAINED_MODEL_DIR):
@@ -34,10 +32,10 @@ if __name__ == "__main__":
     parser.add_argument("--retrain", help="Force retrain the specified model", nargs="?", const="all")
     parser.add_argument("--generate_data", help="Generate/ get the training and testing data", nargs="?", const="all")
     args = parser.parse_args()
-    trained_models = ['custom_naive_bayes_pca', 'sklearn_naive_bayes', 
-                      'sklearn_decision_tree', 'custom_decision_tree', "custom_naive_bayes",
-                      'sklearn_naive_bayes_pca', 'sklearn_decision_tree_pca', 'custom_decision_tree_resnet',
-                      'mlp']
+    trained_models = ["custom_naive_bayes_pca", "custom_naive_bayes", "sklearn_naive_bayes_pca",
+                       "sklearn_naive_bayes", "custom_decision_tree_pca","custom_decision_tree_d50",
+                         "custom_decision_tree_d15", "custom_decision_tree_d10", "custom_decision_tree_d5",
+                        "sklearn_decision_tree_pca", "sklearn_decision_tree_d50", "sklearn_decision_tree_d10", "mlp", "cnn" ]
 
     if args.retrain is not None:
         if args.retrain not in trained_models and args.retrain != "all":
@@ -86,12 +84,8 @@ if __name__ == "__main__":
             train_features, train_labels, train_features_tensors, train_labels_tensors = extract_resnet18_features(train_loader) #Numpy arrays
             test_features, test_labels, test_features_tensors, test_labels_tensors = extract_resnet18_features(test_loader) #Numpy arrays
             # Apply PCA for dimensionality reduction
-            logging.info(f"train_features shape: {train_features.shape}")
-            logging.info(f"test_features shape: {test_features.shape}")
             train_features_pca = apply_pca(train_features)
             test_features_pca = apply_pca(test_features)
-            logging.info(f"train_features_pca shape: {train_features_pca.shape}")
-            logging.info(f"test_features_pca shape: {test_features_pca.shape}")
 
             save_data(train_features, train_labels, test_features, test_labels, train_features_pca, test_features_pca)
         
@@ -382,10 +376,9 @@ if __name__ == "__main__":
 
     cnn_mlp_msg ="""
     Note that the MLP and CNN models were trained on Google Colab in order to utilize GPUs using jupyter notebooks
-    that are located in models/notebooks. The main.py is not configured to train the any CNN or MLP models and 
-    it simply loads the models into the terminal. To train the models yourself, please open the notebooks in Google Colab
-    and create a folder name 'trained_models' in the root directory of the project, and upload the cifar10_data.npz file and 
-    cifar10_tensors.pt file to the 'trained_models' folder. The trained MLP and CNN models will be saved in the 'trained_models' folder.
+    that are located in models/notebooks. While the main.py is configured to train the CNN or MLP models, it should not be used unless you will be training them on a GPU. 
+    To train the models in Google colab, open the notebooks in Google Colab and create a folder name 'trained_models' in the root directory of the project, and upload 
+    the cifar10_data.npz file and cifar10_tensors.pt file to the 'trained_models' folder. The trained MLP and CNN models will be saved in the 'trained_models' folder.
     Do not forget to change the runtime to GPU in the notebook settings (Runtime > Change runtime type > Select GPU).
 
     In addition, the MLP models do not train with PCA reduction as it was redundant and the results without PCA reduction were
@@ -406,7 +399,53 @@ if __name__ == "__main__":
             print(f"\nEvaluating MLP Model with batch_size={batch_size}, learning_rate={learning_rate}, epochs={epoch}, hidden_size={hidden_size}, number of layers={layer}, 512 features")
             file_path_mlp = os.path.join(f"MLP_HiddenSize{hidden_size}_{layer}Layers.pth")
 
-            if os.path.exists(os.path.join(TRAINED_MODEL_DIR, file_path_mlp)):
+            if os.path.exists(os.path.join(TRAINED_MODEL_DIR, file_path_mlp)) and (args.retrain == "mlp" or args.retrain == "all"):
+                print("Retraining MLP Model")
+                mlp = MLP(
+                    train_tensors=train_features_tensors,
+                    train_labels=train_labels_tensors,
+                    test_tensors=test_features_tensors,
+                    test_labels=test_labels_tensors,
+                    num_features=512,
+                    hidden_size=hidden_size,
+                    learning_rate=learning_rate,
+                    batch_size=batch_size,
+                    epochs=epoch,
+                    layers=layer
+                )
+                mlp.train()
+                mlp.get_memory_usage()
+
+                file_mlp_name, file_mlp_extension = os.path.splitext(file_path_mlp)
+                file_path_mlp = file_mlp_name + "_retrained" + file_mlp_extension
+                if os.path.exists(os.path.join(TRAINED_MODEL_DIR, file_path_mlp)):
+                    previous_mlp_retrained_file = os.path.join(TRAINED_MODEL_DIR, file_path_mlp)
+                    print(f"Removing previous retrained model: {previous_mlp_retrained_file}")
+                    os.remove(previous_mlp_retrained_file)
+                mlp.save_model(filename=file_path_mlp)
+
+                _, accuracy, conf_matrix, precision, recall, f1, evaluate_time = mlp.evaluate()
+                GPU_mememory_allocated, GPU_max_memory_allocated, CPU_memory_usage, training_time = mlp.get_mememory_training_data()
+                print(f"Accuracy: {accuracy}")
+                print(f"Confusion Matrix:\n{conf_matrix}")
+                print(f"Precision: {precision}")
+                print(f"Recall: {recall}")
+                print(f"F1 Score: {f1}")
+                print(f"Evaluation Time: {evaluate_time} seconds")
+                print(f"Training Time: {training_time} seconds")
+                print(f"GPU Memory Allocated: {GPU_mememory_allocated} MB")
+                print(f"GPU Max Memory Allocated: {GPU_max_memory_allocated} MB")
+                print(f"CPU Memory Usage: {CPU_memory_usage} MB")
+                if layer == 3:
+                    print(f"Three-layer MLP model")
+                elif layer == 2:
+                    print(f"Two-layer MLP model")
+                elif layer == 4:
+                    print(f"Four-layer MLP model")
+                else:
+                    print(f"Six-layer MLP model")
+            
+            elif os.path.exists(os.path.join(TRAINED_MODEL_DIR, file_path_mlp)):
                 print("Loading saved MLP Model")
                 mlp = MLP(
                     train_tensors=train_features_tensors,
@@ -420,7 +459,14 @@ if __name__ == "__main__":
                     epochs=epoch,
                     layers=layer
                 )
+
+                file_mlp_name, file_mlp_extension = os.path.splitext(file_path_mlp)
+                file_path_mlp_retrained = file_mlp_name + "_retrained" + file_mlp_extension
+
+                if os.path.exists(os.path.join(TRAINED_MODEL_DIR, file_path_mlp_retrained)):
+                    file_path_mlp = file_path_mlp_retrained
                 mlp.load_model(filename=file_path_mlp)
+
                 _, accuracy, conf_matrix, precision, recall, f1, evaluate_time = mlp.evaluate()
                 GPU_mememory_allocated, GPU_max_memory_allocated, CPU_memory_usage, training_time = mlp.get_mememory_training_data()
                 print(f"Accuracy: {accuracy}")
@@ -443,7 +489,7 @@ if __name__ == "__main__":
                     print(f"Six-layer MLP model")
                 
             else:
-                print(f"trained_models/{file_path_mlp} does not exist. Please use Google Colab to train the model.")
+                print(f"trained_models/{file_path_mlp} does not exist. Please use Google Colab to train the model or use the following command to retrain the MLP models: python main.py --retrain mlp.")
 
     
     print("\nEvaluating VGG11 Model")
@@ -458,11 +504,46 @@ if __name__ == "__main__":
             print(f"\nEvaluating VGG11 Model with learning_rate={cnn_learning_rate}, epochs={cnn_epochs}, kernel_size={kernel_size}, number of conv layers={layer}")
             file_path_vgg11 = os.path.join(f"VGG11_Epoch{cnn_epochs}_Kernel{kernel_size}_{layer}ConvLayers.pth")
 
-            if os.path.exists(os.path.join(TRAINED_MODEL_DIR, file_path_vgg11)):
+            if os.path.exists(os.path.join(TRAINED_MODEL_DIR, file_path_vgg11)) and (args.retrain == "cnn" or args.retrain == "all"):
+                print("Retraining VGG11 Model")
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                model = VGG11(layers=layer, num_classes=10, kernel_size=kernel_size)
+                model.to(device)
+                model.train_model(train_loader, num_epochs=cnn_epochs, learning_rate=cnn_learning_rate, momentum=0.9, device=device)
+                model.get_memory_usage()
+
+                file_cnn_name, file_cnn_extension = os.path.splitext(file_path_vgg11)
+                file_path_vgg11 = file_cnn_name + "_retrained" + file_cnn_extension
+                if os.path.exists(os.path.join(TRAINED_MODEL_DIR, file_path_vgg11)):
+                    previous_vgg11_retrained_file = os.path.join(TRAINED_MODEL_DIR, file_path_vgg11)
+                    print(f"Removing previous retrained model: {previous_vgg11_retrained_file}")
+                    os.remove(previous_vgg11_retrained_file)
+                model.save_model(file_path_vgg11)
+
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                accuracy, conf_matrix, precision, recall, f1, eval_time = model.evaluate_model(test_loader_, device)
+                GPU_mememory_allocated, GPU_max_memory_allocated, CPU_memory_usage, training_time = model.get_mememory_training_data()
+                print(f"Accuracy: {accuracy}%")
+                print(f"Confusion Matrix:\n{conf_matrix}")
+                print(f"Precision: {precision}")
+                print(f"Recall: {recall}")
+                print(f"F1 Score: {f1}")
+                print(f"Evaluation Time: {eval_time} seconds")
+                print(f"Training Time: {training_time} seconds")
+                print(f"GPU Memory Allocated: {GPU_mememory_allocated} MB")
+                print(f"GPU Max Memory Allocated: {GPU_max_memory_allocated} MB")
+                print(f"CPU Memory Usage: {CPU_memory_usage} MB")
+
+            elif os.path.exists(os.path.join(TRAINED_MODEL_DIR, file_path_vgg11)):
                 print("Loading saved VGG11 Model")
                 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
                 model = VGG11(layers=layer, num_classes=10, kernel_size=kernel_size)
                 model.to(device)
+
+                file_cnn_name, file_cnn_extension = os.path.splitext(file_path_vgg11)
+                file_cnn_path_retrained = file_cnn_name + "_retrained" + file_cnn_extension
+                if os.path.exists(os.path.join(TRAINED_MODEL_DIR,  file_cnn_path_retrained)):
+                    file_path_vgg11 = file_cnn_path_retrained
                 model.load_model(path=file_path_vgg11, device=device)
 
                 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -480,6 +561,6 @@ if __name__ == "__main__":
                 print(f"CPU Memory Usage: {CPU_memory_usage} MB")
 
             else:
-                print(f"trained_models/{file_path_vgg11} does not exist. Please use Google Colab to train the model.")
+                print(f"trained_models/{file_path_vgg11} does not exist. Please use Google Colab to train the model or use the following command to retrain the CNN models: python main.py --retrain cnn.")
     
 
