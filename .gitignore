@@ -6,3 +6,13 @@ cifar-10-python.tar.gz
 .DS_Store
 dataset.log
 *.log
+
+trained_models/VGG11_Epoch20_Kernel3_6ConvLayers.pth
+trained_models/VGG11_Epoch20_Kernel5_6ConvLayers.pth
+trained_models/VGG11_Epoch20_Kernel7_6ConvLayers.pth
+trained_models/VGG11_Epoch20_Kernel3_8ConvLayers.pth
+trained_models/VGG11_Epoch20_Kernel5_8ConvLayers.pth
+trained_models/VGG11_Epoch20_Kernel7_8ConvLayers.pth
+trained_models/VGG11_Epoch20_Kernel3_10ConvLayers.pth
+trained_models/VGG11_Epoch20_Kernel5_10ConvLayers.pth
+trained_models/VGG11_Epoch20_Kernel7_10ConvLayers.pth
